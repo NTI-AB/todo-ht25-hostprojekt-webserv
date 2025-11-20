@@ -1,1 +1,18 @@
+.container
+  h1 Mina todos
 
+  - if @todos.nil? || @todos.empty?
+    p Inga todos hittades.
+  - else
+    ul.todo-list
+      - @todos.each do |todo|
+        li.summary-card
+          h2.todo-title = todo['name']
+          - description = todo['description']
+          - if description && !description.empty?
+            p.todo-description
+              strong Information:
+              |  #{description}
+          p.todo-meta Typ: #{todo['type']}
+          - status_done = todo['status'].to_s == 'true'
+          p.todo-meta Status: #{status_done ? 'färdig' : 'pågående'}
