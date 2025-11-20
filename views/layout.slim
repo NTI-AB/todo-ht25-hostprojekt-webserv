@@ -1,10 +1,26 @@
-<!DOCTYPE html>
+doctype html
 html lang="en"
   head
-    meta charset="UTF-8"/
-    meta name="viewport" content="width=device-width, initial-scale=1.0"/
-    link rel="stylesheet" href="/style.css?#{Time.now.to_i}"/
-    title Todo
-  body 
-    img src="/img/glhf.png" alt="glhf"/
-    ==yield
+    meta charset="UTF-8"
+    meta name="viewport" content="width=device-width, initial-scale=1.0"
+    title Royale todo list
+    link rel="stylesheet" href="/layout.css"
+    link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Lora&family=Great+Vibes&display=swap" rel="stylesheet"
+
+
+
+
+  body
+    nav
+      .logo Todo list by royale (WE OWN YOU)
+      button#nav-toggle aria-label="Toggle navigation" ☰
+      ul#nav-menu
+        li
+          a href="/" Homepage
+
+    main
+      == yield
+
+    footer
+      p © 2025 Royale todo list. We own you (including your soul).
+      
