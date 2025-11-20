@@ -1,18 +1,60 @@
-.container
-  h1 Mina todos
+.summary-section
+  .container
+    h1 Mina todos
+    .summary-grid
+      .todo-column
+        - if @todos.nil? || @todos.empty?
+          p Inga todos hittades.
+        - else
+          - @todos.each_slice(2) do |pair|
+            .summary-grid
+              - pair.each do |todo|
+                - status_done = todo['status'].to_s == 'true'
+                .summary-card
+                  h2 = todo['name']
+                  - description = todo['description']
+                  - if description && !description.empty?
+                    p
+                      strong Information:
+                      |  #{description}
+                  p Typ: #{todo['type']}
+                  p Status: #{status_done ? 'färdig' : 'pågående'}
+                  .summary-highlights
+                    a.btn href="/todos/#{todo['id']}/edit" Redigera
+                    form action="/todos/#{todo['id']}/toggle" method="post"
+                      button.btn type="submit" Byt status
+                    form action="/todos/#{todo['id']}/delete" method="post"
+                      button.btn type="submit" Radera
+      div
+        .summary-card
+          h2 Ny todo
+          form action="/todos" method="post"
+            label for="name" Namn
+            input type="text" name="name" id="name" required=true
 
-  - if @todos.nil? || @todos.empty?
-    p Inga todos hittades.
-  - else
-    ul.todo-list
-      - @todos.each do |todo|
-        li.summary-card
-          h2.todo-title = todo['name']
-          - description = todo['description']
-          - if description && !description.empty?
-            p.todo-description
-              strong Information:
-              |  #{description}
-          p.todo-meta Typ: #{todo['type']}
-          - status_done = todo['status'].to_s == 'true'
-          p.todo-meta Status: #{status_done ? 'färdig' : 'pågående'}
+            label for="description" Information
+            textarea name="description" id="description" rows="3"
+
+            label for="type" Typ
+            input type="text" name="type" id="type" placeholder="privat"
+
+            p Status
+            label for="status_new_done"
+              input type="radio" name="status" id="status_new_done" value="true"
+              |  Färdig
+            label for="status_new_progress"
+              input type="radio" name="status" id="status_new_progress" value="false" checked=true
+              |  Pågående
+
+            button.btn type="submit" Skapa todo
+        .summary-card
+          h2 Aktiva todos
+          - if @active_todos.nil? || @active_todos.empty?
+            p Inga pågående todos.
+          - else
+            .summary-details
+              - @active_todos.each do |todo|
+                p
+                  strong = todo['name']
+                form action="/todos/#{todo['id']}/toggle" method="post"
+                  button.btn type="submit" Markera som färdig

@@ -1,0 +1,24 @@
+.summary-section
+  .container
+    h1 Uppdatera todo
+    .summary-card
+      form action="/todos/#{@todo['id']}/update" method="post"
+        label for="name" Namn
+        input type="text" name="name" id="name" value=@todo['name'] required=true
+
+        label for="description" Information
+        textarea name="description" id="description" rows="4"
+          = @todo['description']
+
+        label for="type" Typ
+        input type="text" name="type" id="type" value=@todo['type']
+
+        label for="status_true"
+          input type="radio" name="status" id="status_true" value="true" checked=(@todo['status'].to_s == 'true')
+          |  Färdig
+        label for="status_false"
+          input type="radio" name="status" id="status_false" value="false" checked=(@todo['status'].to_s != 'true')
+          |  Pågående
+
+        button.btn type="submit" Uppdatera todo
+        a.btn href="/" Tillbaka
