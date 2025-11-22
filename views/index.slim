@@ -1,33 +1,34 @@
 .summary-section
   .container
     h1 Mina todos
-    .summary-grid
-      .todo-column
+    .summary-grid style="grid-template-columns: 2fr 1fr; gap: 2rem;"
+      / Left column - todos in 2 columns
+      div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;"
         - if @todos.nil? || @todos.empty?
           p Inga todos hittades.
         - else
-          - @todos.each_slice(2) do |pair|
-            .summary-grid
-              - pair.each do |todo|
-                - status_done = todo['status'].to_s == 'true'
-                .summary-card
-                  h2 = todo['name']
-                  - description = todo['description']
-                  - if description && !description.empty?
-                    p
-                      strong Information:
-                      |  #{description}
-                  p Typ: #{todo['type']}
-                  p Status: #{status_done ? 'färdig' : 'pågående'}
-                  .summary-highlights
-                    a.btn href="/todos/#{todo['id']}/edit" Redigera
-                    form action="/todos/#{todo['id']}/toggle" method="post"
-                      button.btn type="submit" Byt status
-                    form action="/todos/#{todo['id']}/delete" method="post"
-                      button.btn type="submit" Radera
-      div
-        .summary-card
-          h2 Ny todo
+          - @todos.each do |todo|
+            - status_done = todo['status'].to_s == 'true'
+            .summary-card style="font-size: 0.9rem;"
+              h2 style="font-size: 1.2rem;" = todo['name']
+              - description = todo['description']
+              - if description && !description.empty?
+                p
+                  strong Information:
+                  |  #{description}
+              p Typ: #{todo['type']}
+              p Status: #{status_done ? 'färdig' : 'pågående'}
+              .summary-highlights
+                a.btn href="/todos/#{todo['id']}/edit" Redigera
+                form action="/todos/#{todo['id']}/toggle" method="post"
+                  button.btn type="submit" Byt status
+                form action="/todos/#{todo['id']}/delete" method="post"
+                  button.btn type="submit" Radera
+      
+      / Right column - new todo and active todos
+      div style="display: flex; flex-direction: column; gap: 1.5rem;"
+        .summary-card style="font-size: 0.9rem;"
+          h2 style="font-size: 1.2rem;" Ny todo
           form action="/todos" method="post"
             label for="name" Namn
             input type="text" name="name" id="name" required=true
@@ -47,8 +48,9 @@
               |  Pågående
 
             button.btn type="submit" Skapa todo
-        .summary-card
-          h2 Aktiva todos
+        
+        .summary-card style="font-size: 0.9rem;"
+          h2 style="font-size: 1.2rem;" Aktiva todos
           - if @active_todos.nil? || @active_todos.empty?
             p Inga pågående todos.
           - else
