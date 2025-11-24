@@ -14,8 +14,35 @@ end
 # Show the todo list on the start page
 get '/' do
   db = todos_db
-  @todos = db.execute('SELECT * FROM todos ORDER BY id DESC')
+  status_filter = params[:status].to_s
+  type_filter = params[:type].to_s.strip
+  @types = db.execute('SELECT DISTINCT type FROM todos ORDER BY LOWER(type) ASC').map { |row| row['type'] }.compact
+
+  query = 'SELECT * FROM todos'
+  conditions = []
+  values = []
+
+  case status_filter
+  when 'done'
+    conditions << 'status = ?'
+    values << 'true'
+  when 'active'
+    conditions << 'status != ?'
+    values << 'true'
+  end
+
+  unless type_filter.empty?
+    conditions << 'LOWER(type) = ?'
+    values << type_filter.downcase
+  end
+
+  query += " WHERE #{conditions.join(' AND ')}" unless conditions.empty?
+  query += ' ORDER BY id DESC'
+
+  @todos = db.execute(query, values)
   @active_todos = @todos.select { |todo| todo['status'].to_s != 'true' }
+  @filter_status = status_filter
+  @filter_type = type_filter
 
   slim(:index)
 end
