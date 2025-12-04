@@ -1,41 +1,47 @@
 require 'sqlite3'
+require_relative 'cat_seed'
 
-db = SQLite3::Database.new("todos.db")
+DB_PATH = File.join(__dir__, 'todos.db')
+
+db = SQLite3::Database.new(DB_PATH)
 
 def seed!(db)
-  puts "Using db file: db/todos.db"
-  puts "🧹 Dropping old tables..."
+  puts 'Using db file: db/todos.db'
+  puts 'Seeding categories via cat_seed...'
+  CatSeed.seed!(db)
+  puts 'Dropping old todo table...'
   drop_tables(db)
-  puts "🧱 Creating tables..."
+  puts 'Creating todo table...'
   create_tables(db)
-  puts "🍎 Populating tables..."
+  puts 'Populating todo table...'
   populate_tables(db)
-  puts "✅ Done seeding the database!"
+  puts 'Done seeding the database!'
 end
 
 def drop_tables(db)
-  db.execute("DROP TABLE IF EXISTS todos")
+  db.execute('DROP TABLE IF EXISTS todos')
 end
 
 def create_tables(db)
   db.execute("
     CREATE TABLE todos (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT NOT NULL, 
+      name TEXT NOT NULL,
       description TEXT,
-      type TEXT NOT NULL DEFAULT 'privat',
-      status BOOLEAN NOT NULL DEFAULT 'false'
+      cat_id INTEGER NOT NULL,
+      status BOOLEAN NOT NULL DEFAULT 'false',
+      FOREIGN KEY (cat_id) REFERENCES cat(id)
     )
   ")
 end
 
 def populate_tables(db)
-  db.execute("INSERT INTO todos (name, description, type, status)
-              VALUES ('Köp mjölk', '3 liter mellanmjölk, eko', 'privat', 'false')")
-  db.execute("INSERT INTO todos (name, description, type, status)
-              VALUES ('Köp julgran', 'En rödgran', 'privat', 'false')")
-  db.execute("INSERT INTO todos (name, description, type, status)
-              VALUES ('Pynta gran', 'Glöm inte lamporna i granen och tomten', 'privat', 'true')")
+  db.execute("INSERT INTO todos (name, description, cat_id, status)
+              VALUES ('Kop mjolk', '3 liter mellanmjolk, eko', 3, 'false')")
+  db.execute("INSERT INTO todos (name, description, cat_id, status)
+              VALUES ('Kop julgran', 'En rodgran', 3, 'false')")
+  db.execute("INSERT INTO todos (name, description, cat_id, status)
+              VALUES ('Pynta gran', 'Glom inte lamporna i granen och tomten', 3, 'true')")
 end
 
 seed!(db)
