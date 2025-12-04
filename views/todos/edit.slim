@@ -10,8 +10,10 @@
         textarea name="description" id="description" rows="4"
           = @todo['description']
 
-        label for="type" Typ
-        input type="text" name="type" id="type" value=@todo['type']
+        label for="cat_id" Kategori
+        select name="cat_id" id="cat_id"
+          - @cats.each do |cat|
+            option value=cat['id'] selected=(cat['id'].to_s == @todo['cat_id'].to_s) = cat['name']
 
         label for="status_true"
           input type="radio" name="status" id="status_true" value="true" checked=(@todo['status'].to_s == 'true')

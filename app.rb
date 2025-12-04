@@ -9,16 +9,20 @@ helpers do
     db.results_as_hash = true
     db
   end
+
+  def first_cat_id(db)
+    db.get_first_value('SELECT id FROM cat ORDER BY id ASC LIMIT 1')
+  end
 end
 
 # Show the todo list on the start page
 get '/' do
   db = todos_db
   status_filter = params[:status].to_s
-  type_filter = params[:type].to_s.strip
-  @types = db.execute('SELECT DISTINCT type FROM todos ORDER BY LOWER(type) ASC').map { |row| row['type'] }.compact
+  cat_filter = params[:cat_id].to_s.strip
+  @cats = db.execute('SELECT id, name FROM cat ORDER BY LOWER(name) ASC')
 
-  query = 'SELECT * FROM todos'
+  query = 'SELECT todos.*, cat.name AS cat_name FROM todos JOIN cat ON cat.id = todos.cat_id'
   conditions = []
   values = []
 
@@ -31,9 +35,9 @@ get '/' do
     values << 'true'
   end
 
-  unless type_filter.empty?
-    conditions << 'LOWER(type) = ?'
-    values << type_filter.downcase
+  unless cat_filter.empty?
+    conditions << 'todos.cat_id = ?'
+    values << cat_filter.to_i
   end
 
   query += " WHERE #{conditions.join(' AND ')}" unless conditions.empty?
@@ -42,7 +46,7 @@ get '/' do
   @todos = db.execute(query, values)
   @active_todos = @todos.select { |todo| todo['status'].to_s != 'true' }
   @filter_status = status_filter
-  @filter_type = type_filter
+  @filter_cat_id = cat_filter
 
   slim(:index)
 end
@@ -50,12 +54,22 @@ end
 post '/todos' do
   name = params[:name]
   description = params[:description]
-  type = params[:type].to_s.strip.empty? ? 'privat' : params[:type]
   status = params[:status] == 'true' ? 'true' : 'false'
+  db = todos_db
+  cat_id = params[:cat_id].to_i
+  cat_id = first_cat_id(db) if cat_id <= 0
 
-  db = SQLite3::Database.new('db/todos.db')
-  db.execute('INSERT INTO todos (name, description, type, status) VALUES (?, ?, ?, ?)',
-             [name, description, type, status])
+  db.execute('INSERT INTO todos (name, description, cat_id, status) VALUES (?, ?, ?, ?)',
+             [name, description, cat_id, status])
+
+  redirect '/'
+end
+
+post '/cat' do
+  name = params[:name]
+  db = todos_db
+  db.execute('INSERT INTO cat (name) VALUES (?)',
+             [name])
 
   redirect '/'
 end
@@ -72,6 +86,7 @@ get '/todos/:id/edit' do
   id = params[:id].to_i
   db = todos_db
   @todo = db.execute('SELECT * FROM todos WHERE id = ?', id).first
+  @cats = db.execute('SELECT id, name FROM cat ORDER BY LOWER(name) ASC')
 
   halt 404, 'Todo not found' unless @todo
 
@@ -82,12 +97,13 @@ post '/todos/:id/update' do
   id = params[:id].to_i
   name = params[:name]
   description = params[:description]
-  type = params[:type].to_s.strip.empty? ? 'privat' : params[:type]
   status = params[:status] == 'true' ? 'true' : 'false'
+  db = todos_db
+  cat_id = params[:cat_id].to_i
+  cat_id = first_cat_id(db) if cat_id <= 0
 
-  db = SQLite3::Database.new('db/todos.db')
-  db.execute('UPDATE todos SET name = ?, description = ?, type = ?, status = ? WHERE id = ?',
-             [name, description, type, status, id])
+  db.execute('UPDATE todos SET name = ?, description = ?, cat_id = ?, status = ? WHERE id = ?',
+             [name, description, cat_id, status, id])
 
   redirect '/'
 end

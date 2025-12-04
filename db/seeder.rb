@@ -37,11 +37,11 @@ end
 
 def populate_tables(db)
   db.execute("INSERT INTO todos (name, description, cat_id, status)
-              VALUES ('Kop mjolk', '3 liter mellanmjolk, eko', 3, 'false')")
+              VALUES ('Kop mjolk', '3 liter mellanmjölk, eko', 3, 'false')")
   db.execute("INSERT INTO todos (name, description, cat_id, status)
-              VALUES ('Kop julgran', 'En rodgran', 3, 'false')")
+              VALUES ('Kop julgran', 'En rödgran', 3, 'false')")
   db.execute("INSERT INTO todos (name, description, cat_id, status)
-              VALUES ('Pynta gran', 'Glom inte lamporna i granen och tomten', 3, 'true')")
+              VALUES ('Pynta gran', 'Glöm inte lamporna i granen och tomten', 3, 'true')")
 end
 
 seed!(db)
