@@ -28,6 +28,7 @@ module CatSeed
   end
 
   def self.populate_tables(db)
+    db.execute("INSERT INTO cat (id, name) VALUES (0, 'ingen kategori')")
     db.execute("INSERT INTO cat (name) VALUES ('Jobb')")
     db.execute("INSERT INTO cat (name) VALUES ('Köp')")
     db.execute("INSERT INTO cat (name) VALUES ('Privat')")

@@ -10,6 +10,11 @@ helpers do
     db
   end
 
+  def ensure_default_cat(db)
+    db.execute('INSERT OR IGNORE INTO cat (id, name) VALUES (?, ?)', [0, 'ingen kategori'])
+    db.execute('UPDATE cat SET name = ? WHERE id = ?', ['ingen kategori', 0])
+  end
+
   def first_cat_id(db)
     db.get_first_value('SELECT id FROM cat ORDER BY id ASC LIMIT 1')
   end
@@ -18,6 +23,7 @@ end
 # Show the todo list on the start page
 get '/' do
   db = todos_db
+  ensure_default_cat(db)
   status_filter = params[:status].to_s
   cat_filter = params[:cat_id].to_s.strip
   @cats = db.execute('SELECT id, name FROM cat ORDER BY LOWER(name) ASC')
@@ -56,6 +62,7 @@ post '/todos' do
   description = params[:description]
   status = params[:status] == 'true' ? 'true' : 'false'
   db = todos_db
+  ensure_default_cat(db)
   cat_id = params[:cat_id].to_i
   cat_id = first_cat_id(db) if cat_id <= 0
 
@@ -74,6 +81,32 @@ post '/cat' do
   redirect '/'
 end
 
+post '/cat/:id/delete' do
+  id = params[:id].to_i
+  db = todos_db
+  ensure_default_cat(db)
+
+  redirect '/' if id <= 0
+
+  db.execute('UPDATE todos SET cat_id = 0 WHERE cat_id = ?', id)
+  db.execute('DELETE FROM cat WHERE id = ?', id)
+
+  redirect '/'
+end
+
+post '/cat/delete' do
+  id = params[:cat_id].to_i
+  db = todos_db
+  ensure_default_cat(db)
+
+  redirect '/' if id <= 0
+
+  db.execute('UPDATE todos SET cat_id = 0 WHERE cat_id = ?', id)
+  db.execute('DELETE FROM cat WHERE id = ?', id)
+
+  redirect '/'
+end
+
 post '/todos/:id/delete' do
   id = params[:id].to_i
   db = SQLite3::Database.new('db/todos.db')
@@ -85,6 +118,7 @@ end
 get '/todos/:id/edit' do
   id = params[:id].to_i
   db = todos_db
+  ensure_default_cat(db)
   @todo = db.execute('SELECT * FROM todos WHERE id = ?', id).first
   @cats = db.execute('SELECT id, name FROM cat ORDER BY LOWER(name) ASC')
 
@@ -99,6 +133,7 @@ post '/todos/:id/update' do
   description = params[:description]
   status = params[:status] == 'true' ? 'true' : 'false'
   db = todos_db
+  ensure_default_cat(db)
   cat_id = params[:cat_id].to_i
   cat_id = first_cat_id(db) if cat_id <= 0
 

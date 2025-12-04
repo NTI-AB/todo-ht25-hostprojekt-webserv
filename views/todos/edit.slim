@@ -11,7 +11,7 @@
           = @todo['description']
 
         label for="cat_id" Kategori
-        select name="cat_id" id="cat_id"
+        select name="cat_id" id="cat_id" style="width: 100%; padding: 0.6rem; border: 2px solid rgba(128, 0, 32, 0.4); border-radius: 10px; background: rgba(255, 255, 255, 0.35);"
           - @cats.each do |cat|
             option value=cat['id'] selected=(cat['id'].to_s == @todo['cat_id'].to_s) = cat['name']
 

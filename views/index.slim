@@ -80,6 +80,17 @@
               input type="text" name="name" id="name" required=true
 
               button.btn type="submit" Skapa Kategorin
+            - has_other_cats = @cats.any? { |cat| cat['id'].to_i != 0 }
+            - if has_other_cats
+              h3 style="font-size: 1rem; margin-top: 1rem;" Ta bort kategorier
+              form action="/cat/delete" method="post" style="display: flex; gap: 0.5rem; align-items: center;"
+                select name="cat_id" style="flex: 1; padding: 0.6rem; border: 2px solid rgba(128, 0, 32, 0.4); border-radius: 10px; background: rgba(255, 255, 255, 0.35);"
+                  - @cats.each do |cat|
+                    - next if cat['id'].to_i == 0
+                    option value=cat['id'] = cat['name']
+                button.btn type="submit" Radera
+            - else
+              p Inga kategorier att radera.
         
         .summary-card style="font-size: 0.9rem;"
           h2 style="font-size: 1.2rem;" Aktiva todos
