@@ -75,4 +75,11 @@ html lang="en"
           document.getElementById('register-box').style.display = 'none';
           document.getElementById('login-box').style.display = 'block';
         }
+
+        window.onclick = function(event) {
+          var modal = document.getElementById('auth-modal');
+          if (event.target === modal) {
+            closeLoginModal();
+          }
+        };
       
