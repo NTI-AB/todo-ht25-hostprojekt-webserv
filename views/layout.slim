@@ -17,10 +17,62 @@ html lang="en"
       ul#nav-menu
         li
           a href="/" Homepage
+        li
+          a href="#" id="login-btn" onclick="openLoginModal()" Login
+
+    / Login / Register Modal
+    #auth-modal.modal
+      .modal-content
+        span.close onclick="closeLoginModal()" ×
+
+        / Login Box
+        #login-box
+          h2 Login
+          form action="/login" method="post"
+            input type="text" name="email" placeholder="Email"
+            input type="password" name="password" placeholder="Password"
+            input.btn type="submit" value="Login"
+          p
+            | No account?
+            a href="#" onclick="showRegisterForm()" Register instead
+
+        / Register Box (hidden by default)
+        #register-box style="display:none;"
+          h2 Register
+          form action="/register" method="post"
+            input type="text" name="username" placeholder="Username"
+            input type="text" name="email" placeholder="Email"
+            input type="password" name="password" placeholder="Password"
+            input type="password" name="confirm" placeholder="Confirm Password"
+            input.btn type="submit" value="Register"
+          p
+            | Already have an account?
+            a href="#" onclick="showLoginForm()" Login instead
 
     main
       == yield
 
     footer
       p © 2025 Royale todo list. We own you (including your soul).
+
+    script
+      |
+        function openLoginModal() {
+          document.getElementById('auth-modal').style.display = 'block';
+          showLoginForm();
+        }
+
+        function closeLoginModal() {
+          document.getElementById('auth-modal').style.display = 'none';
+        }
+
+        function showRegisterForm() {
+          document.getElementById('login-box').style.display = 'none';
+          document.getElementById('register-box').style.display = 'block';
+        }
+
+        function showLoginForm() {
+          document.getElementById('register-box').style.display = 'none';
+          document.getElementById('login-box').style.display = 'block';
+        }
       
