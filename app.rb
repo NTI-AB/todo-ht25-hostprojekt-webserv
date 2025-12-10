@@ -2,6 +2,19 @@ require 'sinatra'
 require 'sqlite3'
 require 'slim'
 require 'sinatra/reloader'
+require 'bcrypt'
+require 'securerandom'
+
+SESSION_SECRET_MIN_LENGTH = 64
+session_secret = ENV['SESSION_SECRET']
+
+if session_secret.nil? || session_secret.bytesize < SESSION_SECRET_MIN_LENGTH
+  warn "SESSION_SECRET is missing or too short (#{session_secret&.bytesize || 0}); generating a temporary secret. Set SESSION_SECRET to at least #{SESSION_SECRET_MIN_LENGTH} bytes in production."
+  session_secret = SecureRandom.hex(64)
+end
+
+enable :sessions
+set :session_secret, session_secret
 
 helpers do
   def todos_db
@@ -18,11 +31,31 @@ helpers do
   def first_cat_id(db)
     db.get_first_value('SELECT id FROM cat ORDER BY id ASC LIMIT 1')
   end
+
+  def current_user(db = nil)
+    return @current_user if defined?(@current_user)
+    return nil unless session[:account_id]
+
+    db ||= todos_db
+    @current_user = db.execute('SELECT id, username, email FROM accounts WHERE id = ?', session[:account_id]).first
+  rescue SQLite3::SQLException
+    @current_user = nil
+  end
+
+  def set_flash(type, message)
+    session[:flash] = { type: type, message: message }
+  end
+
+  def flash_message
+    session.delete(:flash)
+  end
 end
 
 # Show the todo list on the start page
 get '/' do
   db = todos_db
+  @current_user = current_user(db)
+  @flash = flash_message
   ensure_default_cat(db)
   status_filter = params[:status].to_s
   cat_filter = params[:cat_id].to_s.strip
@@ -140,6 +173,65 @@ post '/todos/:id/update' do
   db.execute('UPDATE todos SET name = ?, description = ?, cat_id = ?, status = ? WHERE id = ?',
              [name, description, cat_id, status, id])
 
+  redirect '/'
+end
+
+post '/register' do
+  username = params[:username].to_s.strip
+  email = params[:email].to_s.strip.downcase
+  password = params[:password].to_s
+  db = todos_db
+
+  if username.empty? || email.empty? || password.empty?
+    set_flash('error', 'Fyll i alla fält för att registrera dig.')
+    redirect '/'
+  end
+
+  existing = db.get_first_value('SELECT id FROM accounts WHERE email = ?', email)
+  if existing
+    set_flash('error', 'E-postadressen används redan.')
+    redirect '/'
+  end
+
+  password_hash = BCrypt::Password.create(password)
+  db.execute('INSERT INTO accounts (username, email, password) VALUES (?, ?, ?)',
+             [username, email, password_hash])
+
+  session[:account_id] = db.last_insert_row_id
+  set_flash('success', 'Registrering lyckades, du är inloggad.')
+  redirect '/'
+end
+
+post '/login' do
+  email = params[:email].to_s.strip.downcase
+  password = params[:password].to_s
+  db = todos_db
+
+  account = db.execute('SELECT * FROM accounts WHERE email = ?', email).first
+
+  authenticated = false
+
+  if account && account['password']
+    begin
+      authenticated = BCrypt::Password.new(account['password']) == password
+    rescue BCrypt::Errors::InvalidHash
+      authenticated = false
+    end
+  end
+
+  if account && authenticated
+    session[:account_id] = account['id']
+    set_flash('success', 'Inloggning lyckades.')
+  else
+    set_flash('error', 'Fel e-post eller lösenord.')
+  end
+
+  redirect '/'
+end
+
+post '/logout' do
+  session.delete(:account_id)
+  set_flash('success', 'Du är utloggad.')
   redirect '/'
 end
 

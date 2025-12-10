@@ -11,7 +11,7 @@ def seed!(db)
   CatSeed.seed!(db)
   puts 'Dropping old todo table...'
   drop_tables(db)
-  puts 'Creating todo table...'
+  puts 'Creating todo and account tables...'
   create_tables(db)
   puts 'Populating todo table...'
   populate_tables(db)
@@ -19,10 +19,19 @@ def seed!(db)
 end
 
 def drop_tables(db)
+  db.execute('DROP TABLE IF EXISTS accounts')
   db.execute('DROP TABLE IF EXISTS todos')
 end
 
 def create_tables(db)
+  db.execute("
+    CREATE TABLE accounts (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      username TEXT NOT NULL,
+      email TEXT NOT NULL,
+      password TEXT NOT NULL
+    )
+  ")
   db.execute("
     CREATE TABLE todos (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
