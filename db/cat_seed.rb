@@ -1,7 +1,7 @@
 require 'sqlite3'
 
 module CatSeed
-  DB_PATH = File.join(__dir__, 'todos.db')
+  DB_PATH = ENV['DB_PATH'] || File.join(__dir__, 'todos.db')
 
   def self.seed!(db = SQLite3::Database.new(DB_PATH))
     puts 'Using db file: db/todos.db'

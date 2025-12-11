@@ -1,7 +1,7 @@
 require 'sqlite3'
 require_relative 'cat_seed'
 
-DB_PATH = File.join(__dir__, 'todos.db')
+DB_PATH = ENV['DB_PATH'] || File.join(__dir__, 'todos.db')
 
 db = SQLite3::Database.new(DB_PATH)
 
@@ -46,9 +46,9 @@ end
 
 def populate_tables(db)
   db.execute("INSERT INTO todos (name, description, cat_id, status)
-              VALUES ('Kop mjolk', '3 liter mellanmjölk, eko', 3, 'false')")
+              VALUES ('Köp mjolk', '3 liter mellanmjölk, eko', 3, 'false')")
   db.execute("INSERT INTO todos (name, description, cat_id, status)
-              VALUES ('Kop julgran', 'En rödgran', 3, 'false')")
+              VALUES ('Köp julgran', 'En rödgran', 3, 'false')")
   db.execute("INSERT INTO todos (name, description, cat_id, status)
               VALUES ('Pynta gran', 'Glöm inte lamporna i granen och tomten', 3, 'true')")
 end

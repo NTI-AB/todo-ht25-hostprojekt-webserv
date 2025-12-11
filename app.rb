@@ -197,7 +197,12 @@ post '/register' do
   db.execute('INSERT INTO accounts (username, email, password) VALUES (?, ?, ?)',
              [username, email, password_hash])
 
-  session[:account_id] = db.last_insert_row_id
+  account_id = db.last_insert_row_id
+  account_dir = File.join('db', account_id.to_s)
+  Dir.mkdir(account_dir) unless Dir.exist?(account_dir)
+  system({ 'DB_PATH' => File.join(account_dir, 'todos.db') }, 'ruby', File.join('db', 'seeder.rb'))
+
+  session[:account_id] = account_id
   set_flash('success', 'Registrering lyckades, du är inloggad.')
   redirect '/'
 end
