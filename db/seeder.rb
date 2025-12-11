@@ -1,16 +1,40 @@
 require 'sqlite3'
+require 'fileutils'
 require_relative 'cat_seed'
 
-DB_PATH = ENV['DB_PATH'] || File.join(__dir__, 'todos.db')
+DEFAULT_DB_PATH = File.join(__dir__, 'todos.db')
+DB_PATH = ENV['DB_PATH'] || DEFAULT_DB_PATH
 
 db = SQLite3::Database.new(DB_PATH)
 
+def using_default_db?
+  File.expand_path(DB_PATH) == File.expand_path(DEFAULT_DB_PATH)
+end
+
+def delete_account_directories
+  return unless using_default_db?
+
+  account_dirs = Dir.children(__dir__).select do |entry|
+    dir_path = File.join(__dir__, entry)
+    File.directory?(dir_path) && entry.match?(/\A\d+\z/)
+  end
+
+  return if account_dirs.empty?
+
+  puts 'Removing account directories...'
+  account_dirs.each do |dir|
+    FileUtils.rm_rf(File.join(__dir__, dir))
+    puts " - Removed db/#{dir}"
+  end
+end
+
 def seed!(db)
-  puts 'Using db file: db/todos.db'
+  puts "Using db file: #{DB_PATH}"
   puts 'Seeding categories via cat_seed...'
   CatSeed.seed!(db)
   puts 'Dropping old todo table...'
   drop_tables(db)
+  delete_account_directories if __FILE__ == $PROGRAM_NAME && using_default_db?
   puts 'Creating todo and account tables...'
   create_tables(db)
   puts 'Populating todo table...'
