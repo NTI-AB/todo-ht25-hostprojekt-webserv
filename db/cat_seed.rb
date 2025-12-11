@@ -28,10 +28,10 @@ module CatSeed
   end
 
   def self.populate_tables(db)
-    db.execute("INSERT INTO cat (id, name) VALUES (0, 'ingen kategori')")
-    db.execute("INSERT INTO cat (name) VALUES ('Jobb')")
-    db.execute("INSERT INTO cat (name) VALUES ('Köp')")
-    db.execute("INSERT INTO cat (name) VALUES ('Privat')")
+    db.execute("INSERT INTO cat (id, name) VALUES (0, 'No category')")
+    db.execute("INSERT INTO cat (name) VALUES ('Work')")
+    db.execute("INSERT INTO cat (name) VALUES ('Shopping')")
+    db.execute("INSERT INTO cat (name) VALUES ('Personal')")
   end
 end
 

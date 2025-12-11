@@ -1,37 +1,37 @@
 .summary-section
   .container
-    h1 Mina todos
+    h1 My todos
 
     - filter_open = !@filter_status.to_s.empty? || !@filter_cat_id.to_s.empty?
-    button.btn type="button" id="toggle-filter" style="margin-bottom: 0.8rem;" = filter_open ? 'Göm filter' : 'Visa filter'
+    button.btn type="button" id="toggle-filter" style="margin-bottom: 0.8rem;" = filter_open ? 'Hide filters' : 'Show filters'
 
     .summary-card id="filter-panel" style="font-size: 0.9rem; margin-bottom: 1rem; display: #{filter_open ? 'block' : 'none'};"
-      h2 style="font-size: 1.1rem;" Filtrera todos
+      h2 style="font-size: 1.1rem;" Filter todos
 
       form action="/" method="get" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0.75rem; align-items: end;"
         div
-          label for="status" Visa
+          label for="status" Show
           select name="status" id="status" style="width: 100%; padding: 0.6rem; border: 2px solid rgba(128, 0, 32, 0.4); border-radius: 10px; background: rgba(255, 255, 255, 0.35);"
-            option value="" selected=(@filter_status.empty?) Alla
-            option value="active" selected=(@filter_status == 'active') Endast aktiva
-            option value="done" selected=(@filter_status == 'done') Endast klara
+            option value="" selected=(@filter_status.empty?) All
+            option value="active" selected=(@filter_status == 'active') Active only
+            option value="done" selected=(@filter_status == 'done') Completed only
 
         div
-          label for="cat_id" Kategori
+          label for="cat_id" Category
           select name="cat_id" id="cat_id" style="width: 100%; padding: 0.6rem; border: 2px solid rgba(128, 0, 32, 0.4); border-radius: 10px; background: rgba(255, 255, 255, 0.35);"
-            option value="" selected=(@filter_cat_id.to_s.empty?) Alla kategorier
+            option value="" selected=(@filter_cat_id.to_s.empty?) All categories
             - @cats.each do |cat|
               option value=cat['id'] selected=(cat['id'].to_s == @filter_cat_id) = cat['name']
 
         div style="display: flex; gap: 0.5rem; align-items: center;"
-          button.btn type="submit" Filtrera
-          a.btn href="/" Rensa filter
+          button.btn type="submit" Apply filters
+          a.btn href="/" Clear filters
 
     .summary-grid style="grid-template-columns: 2fr 1fr; gap: 2rem;"
       / Left column: todo cards
       div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;"
         - if @todos.nil? || @todos.empty?
-          p Inga todos hittades.
+          p No todos found.
         - else
           - @todos.each do |todo|
             - status_done = todo['status'].to_s == 'true'
@@ -42,32 +42,32 @@
               - description = todo['description']
               - if description && !description.empty?
                 p
-                  strong Information:
+                  strong Details:
                   |  #{description}
 
-              p Kategori: #{todo['cat_name']}
-              p Status: #{status_done ? 'fardig' : 'pagaende'}
+              p Category: #{todo['cat_name']}
+              p Status: #{status_done ? 'Done' : 'In progress'}
 
               .summary-highlights
-                a.btn href="/todos/#{todo['id']}/edit" Redigera
+                a.btn href="/todos/#{todo['id']}/edit" Edit
                 form action="/todos/#{todo['id']}/toggle" method="post"
-                  button.btn type="submit" Byt status
+                  button.btn type="submit" Toggle status
                 form action="/todos/#{todo['id']}/delete" method="post"
-                  button.btn type="submit" Radera
+                  button.btn type="submit" Delete
 
-      / Right column: formulär + aktiva
+      / Right column: form + active
       div style="display: flex; flex-direction: column; gap: 1.5rem;"
         .summary-card style="font-size: 0.9rem;"
-          h2 style="font-size: 1.2rem;" Ny todo
+          h2 style="font-size: 1.2rem;" New todo
 
           form action="/todos" method="post"
-            label for="name" Namn
+            label for="name" Name
             input type="text" name="name" id="name" required=true
 
-            label for="description" Information
+            label for="description" Details
             textarea name="description" id="description" rows="3"
 
-            label for="cat_id" Kategori
+            label for="cat_id" Category
             select name="cat_id" id="cat_id" style="width: 100%; padding: 0.6rem; border: 2px solid rgba(128, 0, 32, 0.4); border-radius: 10px; background: rgba(255, 255, 255, 0.35);"
               - @cats.each do |cat|
                 option value=cat['id'] = cat['name']
@@ -75,49 +75,49 @@
             p Status
             label for="status_new_done"
               input type="radio" name="status" id="status_new_done" value="true"
-              |  Färdig
+              |  Done
             label for="status_new_progress"
               input type="radio" name="status" id="status_new_progress" value="false" checked=true
-              |  Pågående
+              |  In progress
 
-            button.btn type="submit" Skapa todo
+            button.btn type="submit" Create todo
 
-        / Ska skriva om denna till en post som skapar en ny kategori
+        / TODO: rewrite this into a post that creates a new category
         div style="display: flex; flex-direction: column; gap: 1.5rem;"
           .summary-card style="font-size: 0.9rem;"
-            h2 style="font-size: 1.2rem;" Ny Kategori
+            h2 style="font-size: 1.2rem;" New category
 
             form action="/cat" method="post"
-              label for="name" Namn
+              label for="name" Name
               input type="text" name="name" id="name" required=true
 
-              button.btn type="submit" Skapa Kategorin
+              button.btn type="submit" Create category
 
             - has_other_cats = @cats.any? { |cat| cat['id'].to_i != 0 }
             - if has_other_cats
-              h3 style="font-size: 1rem; margin-top: 1rem;" Ta bort kategorier
+              h3 style="font-size: 1rem; margin-top: 1rem;" Delete categories
 
               form action="/cat/delete" method="post" style="display: flex; gap: 0.5rem; align-items: center;"
                 select name="cat_id" style="flex: 1; padding: 0.6rem; border: 2px solid rgba(128, 0, 32, 0.4); border-radius: 10px; background: rgba(255, 255, 255, 0.35);"
                   - @cats.each do |cat|
                     - next if cat['id'].to_i == 0
                     option value=cat['id'] = cat['name']
-                button.btn type="submit" Radera
+                button.btn type="submit" Delete
             - else
-              p Inga kategorier att radera.
+              p No categories to delete.
 
         .summary-card style="font-size: 0.9rem;"
-          h2 style="font-size: 1.2rem;" Aktiva todos
+          h2 style="font-size: 1.2rem;" Active todos
 
           - if @active_todos.nil? || @active_todos.empty?
-            p Inga pågående todos.
+            p No active todos.
           - else
             .summary-details
               - @active_todos.each do |todo|
                 p
                   strong = todo['name']
                 form action="/todos/#{todo['id']}/toggle" method="post"
-                  button.btn type="submit" Markera som färdig
+                  button.btn type="submit" Mark as done
 
     script
       | const filterBtn = document.getElementById('toggle-filter');
@@ -126,6 +126,6 @@
       |   filterBtn.addEventListener('click', () => {
       |     const isHidden = filterPanel.style.display === 'none';
       |     filterPanel.style.display = isHidden ? 'block' : 'none';
-      |     filterBtn.textContent = isHidden ? 'Göm filter' : 'Visa filter';
+      |     filterBtn.textContent = isHidden ? 'Hide filters' : 'Show filters';
       |   });
       | }

@@ -24,8 +24,8 @@ helpers do
   end
 
   def ensure_default_cat(db)
-    db.execute('INSERT OR IGNORE INTO cat (id, name) VALUES (?, ?)', [0, 'ingen kategori'])
-    db.execute('UPDATE cat SET name = ? WHERE id = ?', ['ingen kategori', 0])
+    db.execute('INSERT OR IGNORE INTO cat (id, name) VALUES (?, ?)', [0, 'No category'])
+    db.execute('UPDATE cat SET name = ? WHERE id = ?', ['No category', 0])
   end
 
   def first_cat_id(db)
@@ -183,13 +183,13 @@ post '/register' do
   db = todos_db
 
   if username.empty? || email.empty? || password.empty?
-    set_flash('error', 'Fyll i alla fält för att registrera dig.')
+    set_flash('error', 'Please fill in all fields to register.')
     redirect '/'
   end
 
   existing = db.get_first_value('SELECT id FROM accounts WHERE email = ?', email)
   if existing
-    set_flash('error', 'E-postadressen används redan.')
+    set_flash('error', 'That email address is already in use.')
     redirect '/'
   end
 
@@ -203,7 +203,7 @@ post '/register' do
   system({ 'DB_PATH' => File.join(account_dir, 'todos.db') }, 'ruby', File.join('db', 'seeder.rb'))
 
   session[:account_id] = account_id
-  set_flash('success', 'Registrering lyckades, du är inloggad.')
+  set_flash('success', 'Registration successful - you are now signed in.')
   redirect '/'
 end
 
@@ -226,9 +226,9 @@ post '/login' do
 
   if account && authenticated
     session[:account_id] = account['id']
-    set_flash('success', 'Inloggning lyckades.')
+    set_flash('success', 'Signed in successfully.')
   else
-    set_flash('error', 'Fel e-post eller lösenord.')
+    set_flash('error', 'Incorrect email or password.')
   end
 
   redirect '/'
@@ -236,7 +236,7 @@ end
 
 post '/logout' do
   session.delete(:account_id)
-  set_flash('success', 'Du är utloggad.')
+  set_flash('success', 'You have been logged out.')
   redirect '/'
 end
 

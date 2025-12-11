@@ -1,26 +1,26 @@
 .summary-section
   .container
-    h1 Uppdatera todo
+    h1 Update todo
     .summary-card
       form action="/todos/#{@todo['id']}/update" method="post"
-        label for="name" Namn
+        label for="name" Name
         input type="text" name="name" id="name" value=@todo['name'] required=true
 
-        label for="description" Information
+        label for="description" Details
         textarea name="description" id="description" rows="4"
           = @todo['description']
 
-        label for="cat_id" Kategori
+        label for="cat_id" Category
         select name="cat_id" id="cat_id" style="width: 100%; padding: 0.6rem; border: 2px solid rgba(128, 0, 32, 0.4); border-radius: 10px; background: rgba(255, 255, 255, 0.35);"
           - @cats.each do |cat|
             option value=cat['id'] selected=(cat['id'].to_s == @todo['cat_id'].to_s) = cat['name']
 
         label for="status_true"
           input type="radio" name="status" id="status_true" value="true" checked=(@todo['status'].to_s == 'true')
-          |  Färdig
+          |  Done
         label for="status_false"
           input type="radio" name="status" id="status_false" value="false" checked=(@todo['status'].to_s != 'true')
-          |  Pågående
+          |  In progress
 
-        button.btn type="submit" Uppdatera todo
-        a.btn href="/" Tillbaka
+        button.btn type="submit" Update todo
+        a.btn href="/" Back
