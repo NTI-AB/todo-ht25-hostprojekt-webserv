@@ -15,10 +15,21 @@ html lang="en"
       .logo Todo list by royale (WE OWN YOU)
       button#nav-toggle aria-label="Toggle navigation" ☰
       ul#nav-menu
-        li
-          a href="/" Homepage
-        li
-          a href="#" id="login-btn" onclick="openLoginModal()" Login
+        - user = @current_user || current_user
+        - if user
+          li
+            a href="#" = "hello #{user['username']}"
+          li
+            a href="/" Homepage
+          li
+            a href="#" id="logout-btn" onclick="document.getElementById('logout-form').submit(); return false;" Logout
+        - else
+          li
+            a href="/" Homepage
+          li
+            a href="#" id="login-btn" onclick="openLoginModal()" Login
+
+    form#logout-form action="/logout" method="post" style="display:none;"
 
     / Login / Register Modal
     #auth-modal.modal
