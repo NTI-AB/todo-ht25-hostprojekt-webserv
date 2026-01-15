@@ -17,44 +17,66 @@ enable :sessions
 set :session_secret, session_secret
 
 helpers do
-  def todos_db
+  # Hämta databasanslutning och konfigurera resultat som hashar.
+  def accounts_db
     db = SQLite3::Database.new('db/todos.db')
     db.results_as_hash = true
     db
   end
 
+  def todos_db
+    db_path = 'db/todos.db'
+    if session[:account_id]
+      account_dir = File.join('db', session[:account_id].to_s)
+      db_path = File.join(account_dir, 'todos.db')
+      unless File.exist?(db_path)
+        Dir.mkdir(account_dir) unless Dir.exist?(account_dir)
+        system({ 'DB_PATH' => db_path }, 'ruby', File.join('db', 'seeder.rb'))
+      end
+    end
+
+    db = SQLite3::Database.new(db_path)
+    db.results_as_hash = true
+    db
+  end
+
+  # Skapa standardkategori om den saknas och tvinga korrekt namn.
   def ensure_default_cat(db)
     db.execute('INSERT OR IGNORE INTO cat (id, name) VALUES (?, ?)', [0, 'No category'])
     db.execute('UPDATE cat SET name = ? WHERE id = ?', ['No category', 0])
   end
 
+  # Hämta första kategori-id som fallback.
   def first_cat_id(db)
     db.get_first_value('SELECT id FROM cat ORDER BY id ASC LIMIT 1')
   end
 
+  # Hämta inloggad användare från sessionen.
   def current_user(db = nil)
     return @current_user if defined?(@current_user)
     return nil unless session[:account_id]
 
-    db ||= todos_db
+    db ||= accounts_db
     @current_user = db.execute('SELECT id, username, email FROM accounts WHERE id = ?', session[:account_id]).first
   rescue SQLite3::SQLException
     @current_user = nil
   end
 
+  # Spara ett flash-meddelande i sessionen.
   def set_flash(type, message)
     session[:flash] = { type: type, message: message }
   end
 
+  # Plocka och rensa flash-meddelande fran sessionen.
   def flash_message
     session.delete(:flash)
   end
 end
 
-# Show the todo list on the start page
+# Visa startvyn med filtrerad todo-lista.
 get '/' do
   db = todos_db
-  @current_user = current_user(db)
+  @current_user = current_user
   @flash = flash_message
   ensure_default_cat(db)
   status_filter = params[:status].to_s
@@ -90,6 +112,7 @@ get '/' do
   slim(:index)
 end
 
+# Skapa en ny todo.
 post '/todos' do
   name = params[:name]
   description = params[:description]
@@ -105,6 +128,7 @@ post '/todos' do
   redirect '/'
 end
 
+# Skapa en ny kategori.
 post '/cat' do
   name = params[:name]
   db = todos_db
@@ -114,6 +138,7 @@ post '/cat' do
   redirect '/'
 end
 
+# Radera kategori via id och flytta todos till standardkategori.
 post '/cat/:id/delete' do
   id = params[:id].to_i
   db = todos_db
@@ -127,6 +152,7 @@ post '/cat/:id/delete' do
   redirect '/'
 end
 
+# Radera kategori via formulärets cat_id och flytta todos.
 post '/cat/delete' do
   id = params[:cat_id].to_i
   db = todos_db
@@ -140,14 +166,16 @@ post '/cat/delete' do
   redirect '/'
 end
 
+# Radera en todo via id.
 post '/todos/:id/delete' do
   id = params[:id].to_i
-  db = SQLite3::Database.new('db/todos.db')
+  db = todos_db
   db.execute('DELETE FROM todos WHERE id = ?', id)
 
   redirect '/'
 end
 
+# Visa redigeringsvy for vald todo.
 get '/todos/:id/edit' do
   id = params[:id].to_i
   db = todos_db
@@ -160,6 +188,7 @@ get '/todos/:id/edit' do
   slim(:"todos/edit")
 end
 
+# Uppdatera vald todo.
 post '/todos/:id/update' do
   id = params[:id].to_i
   name = params[:name]
@@ -176,11 +205,12 @@ post '/todos/:id/update' do
   redirect '/'
 end
 
+# Registrera nytt konto och skapa databas.
 post '/register' do
   username = params[:username].to_s.strip
   email = params[:email].to_s.strip.downcase
   password = params[:password].to_s
-  db = todos_db
+  db = accounts_db
 
   if username.empty? || email.empty? || password.empty?
     set_flash('error', 'Please fill in all fields to register.')
@@ -207,10 +237,11 @@ post '/register' do
   redirect '/'
 end
 
+# Logga in användare.
 post '/login' do
   email = params[:email].to_s.strip.downcase
   password = params[:password].to_s
-  db = todos_db
+  db = accounts_db
 
   account = db.execute('SELECT * FROM accounts WHERE email = ?', email).first
 
@@ -234,12 +265,14 @@ post '/login' do
   redirect '/'
 end
 
+# Logga ut användare.
 post '/logout' do
   session.delete(:account_id)
   set_flash('success', 'You have been logged out.')
   redirect '/'
 end
 
+# Växla status for vald todo.
 post '/todos/:id/toggle' do
   id = params[:id].to_i
   db = todos_db
